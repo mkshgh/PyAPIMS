@@ -39,8 +39,8 @@ iTWzahO0B5xvIubBMPH8lwxcful81/LMFSWA5q52nobg25Bx8fFBabLckc0hyWaM
 """ApiEndPoint and UserCreds"""
 pvtKey:str = "see_above_for_format"
 api_url:str = 'http://mukeshg.com.np/api/v1/connect'
-my_user:str = "mukes@123"
-my_pass:str = "mukes@123"
+api_user:str = "mukes@123"
+api_pass:str = "mukes@123"
 
 """Required Payload Method, Data and Signature"""
 # private key loaded
@@ -77,7 +77,7 @@ real_payload:json = json.dumps(
 
 """Forming the header as mentioned in the documentation"""
 #base64 credentials for authentication
-base64_credentials:str = str(base64.b64encode((my_user+':'+my_pass).encode()).decode())
+base64_credentials:str = str(base64.b64encode((api_user+':'+api_pass).encode()).decode())
 
 # Creating the header dictionary
 Header_dict:dict= {
