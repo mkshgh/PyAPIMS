@@ -35,34 +35,36 @@ iTWzahO0B5xvIubBMPH8lwxcful81/LMFSWA5q52nobg25Bx8fFBabLckc0hyWaM
 0UoUJLdPvtAbRQ6oyK8G+nBHSzC0yPqA9acSfUZ29TEB71LPGA==
 -----END RSA PRIVATE KEY-----"""
 
-# Generate Dynamically  # TimeStamp = str(datetime.datetime.now()).replace(" ","T")
-TimeStamp = str(datetime.today().strftime('%Y-%m-%dT%H:%M:%S.000%z'))
 
-# Required Data, Data are fake as this is just for reference. Change as per your need
+"""ApiEndPoint and UserCreds"""
 pvtKey:str = "see_above_for_format"
-url:str = 'http://mukeshg.com.np/api/v1/connect'
+api_url:str = 'http://mukeshg.com.np/api/v1/connect'
 my_user:str = "mukes@123"
 my_pass:str = "mukes@123"
-my_data:dict = {"TransactionId":"123","AccountNumber":"1900000001"}
-my_data_with_timestamp:dict = {"Model":my_data,"TimeStamp":TimeStamp}
 
-
-# Pre json data loading for easiness, can be done later too
-my_databytes:bytes=json.dumps(my_data).encode()
-my_databytes_with_timestamp:bytes = json.dumps(my_data_with_timestamp).encode()
-privateRSAkey:PrivateKey = rsa.PrivateKey.load_pkcs1(pvtKey)   # private key loaded
-signature:bytes = rsa.sign(my_databytes_with_timestamp, privateRSAkey, 'SHA-256') # Signature is hash of the data generated with the private key loaded above
-
-
-# Now creating the requests and headers as mentioned in the documentation
-# Refer to the document if you have confusion why it is done
-base64_credentials:str = str(base64.b64encode((my_user+':'+my_pass).encode()).decode()) #base64 credentials for authentication
+"""Required Payload Method, Data and Signature"""
+# private key loaded
+privateRSAkey:PrivateKey = rsa.PrivateKey.load_pkcs1(pvtKey)
+# Generate Dynamically  # TimeStamp = str(datetime.datetime.now()).replace(" ","T")
+TimeStamp = str(datetime.today().strftime('%Y-%m-%dT%H:%M:%S.000%z'))
+# Used balanceEnquiry method as an example
 function_name:str = "BalanceEnquiry" #name of the function
+payload_data:dict = {"TransactionId":"123","AccountNumber":"1900000001"}
+signature_payload:dict = {"Model":payload_data,"TimeStamp":TimeStamp} # Added the Time Stamp here
+
+
+"""Convert Data and Signature to bytes and sign the payload"""
+# Data to Bytes
+payload_data_bytes:bytes=json.dumps(payload_data).replace(" ","").encode()
+signature_payload_bytes:bytes = json.dumps(signature_payload).replace(" ","").encode()
+#Load the private Key and sign the payload
+signature:bytes = rsa.sign(signature_payload_bytes, privateRSAkey, 'SHA-256') # Signature is hash of the data generated with the private key loaded above
+
+"""Forming the payload data and signature as mentioned in the documentation"""
 # Encode the data to base64 format + Decode the data back to string as input is string in the request format
-payload_data:str = base64.b64encode(my_databytes).decode('UTF-8') # payload_data
+payload_data:str = base64.b64encode(payload_data_bytes).decode('UTF-8') # payload_data
 # Signature is hash of the data generated with the private key loaded above
 payload_signature:str = base64.b64encode(signature).decode('UTF-8') # payload_signature
-
 
 # Creating the payload json
 real_payload:json = json.dumps(
@@ -73,15 +75,20 @@ real_payload:json = json.dumps(
     }
 )
 
+"""Forming the header as mentioned in the documentation"""
+#base64 credentials for authentication
+base64_credentials:str = str(base64.b64encode((my_user+':'+my_pass).encode()).decode())
+
 # Creating the header dictionary
 Header_dict:dict= {
     'Authorization' : 'Basic %s' % base64_credentials,
     "Content-Type": "application/json"
 }
 
-# Your request is sent now somewhere in the magiclands
-resp:json = requests.request("POST",url, headers=Header_dict, data=real_payload )
 
+"""Sending the request and Receiving the response"""
+# Your request is sent now somewhere in the magiclands to the server
+resp:json = requests.request("POST",api_url, headers=Header_dict, data=real_payload )
 # Response from the Server
 print(resp.headers)
 print(resp.status_code)
